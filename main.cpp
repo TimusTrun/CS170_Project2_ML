@@ -4,8 +4,9 @@
 
 void printRow(vector<double> row){
     for (int j = 0; j < row.size(); j++){
-        cout << row.at(j) << endl;
+        cout << row.at(j) << " ";
     }
+    cout << endl;
 }
 
 vector<vector<double>> convertFiletoData(string data){
@@ -64,37 +65,71 @@ vector<vector<double>> convertFiletoData(string data){
 }
 
 double leaveOneOutCrossValidation(vector<vector<double>> data, vector<int>current_set_of_features, int feature_to_add){
-    // int accuracy = rand() % 101; //range of 0 - 100 (whole number)
-    // int dec = rand() % 9; //0 - 9 (decimal part)
-    // string whole = to_string(accuracy);
-    // string decimal = to_string(dec);
-    // string num = whole + "." + decimal;
-    // double val = stod(num);
-    // return val;
+    //current set of features is the ones i want to isolate, feature to add is also isolated (every other column becomes 0)
+    vector<vector<double>> dataset = data;
+    // printRow(dataset.at(1));
+    for (int i = 0; i < dataset.size(); i++){
+        for (int j = 0; j < dataset.at(0).size(); j++){
+            if (find(current_set_of_features.begin(), current_set_of_features.end(), j) != current_set_of_features.end()){
+                //if j index is one of our curr features, do not turn that column to 0
+            } else { //if j index is not one of our curr features, turn column to 0, if classifier column or feature_to_add, dont change it
+                if (j != 0 && j != feature_to_add){ //if currCol not classifier index and not featureToAdd, change to 0
+                    dataset.at(i).at(j) = 0;
+                }
+            }
+        }
+    }
+    // printRow(dataset.at(1));
+    
     vector<double> objectToClassify;
     double labelObjectToClassify;
     double nearestNeighborDistance = INT_MAX;
     double nearestNeighborLocation = INT_MAX;
+    double nearestNeighborLabel; 
+    vector<double> temp3;
+    double sum;
+    double distance;
+    double numberCorrectlyClassified = 0;
+    double accuracy;
     
-    for (int i = 0; i < data.size(); i++){
-        for (int x = 1; x < data.at(0).size(); x++){ //all features of the ith object
-            objectToClassify.push_back(data.at(i).at(x));
-        }
-        labelObjectToClassify = data.at(i).at(0); //first index of each row, identifier
+    for (int i = 0; i < dataset.size(); i++){
+        //cout << i << "BYE" << endl;
+        objectToClassify = {};
+        for (int x = 1; x < dataset.at(0).size(); x++){ //all features of the ith object
+            objectToClassify.push_back(dataset.at(i).at(x));
+            //cout << objectToClassify.size() << endl;
+        } //Grabbed Object to classify
+        labelObjectToClassify = dataset.at(i).at(0); //first index of each row, identifier
         
         nearestNeighborDistance = INT_MAX;
         nearestNeighborLocation = INT_MAX;
         
-        for (int j = 0; j < data.size(); j++){
-            if (j != i){ // cout << "Ask if " << i << " is nearest neighbor with " << j << endl;
-                for (int x = 0; x < data.at(0).size(); x++){ //calculating distance for NN
-                    //TODO: FINISH EUCLIDEAN DISTANCES **************************************************************
-                } //calculating distance for NN
+        for (int j = 0; j < dataset.size(); j++){
+            temp3 = {};
+            sum = 0;
+            if (j != i){ 
+                //cout << "Ask if " << i << " is nearest neighbor with " << j << endl;
+                for (int y = 1; y < dataset.at(0).size(); y++){ //push features into temp1
+                    temp3.push_back(dataset.at(j).at(y)); 
+                }
+                for (int x = 0; x < objectToClassify.size(); x++){ //calculating distance for NN
+                    //TODO: FINISH EUCLIDEAN DISTANCES **************************************
+                    sum += pow((objectToClassify.at(x) - temp3.at(x)), 2); //add up all differences squared
+                }
+                distance = sqrt(sum); //sqrt of the sums
+                //cout << distance << endl;
+                if (distance < nearestNeighborDistance){
+                    nearestNeighborDistance = distance;
+                    nearestNeighborLocation = j;
+                    nearestNeighborLabel = dataset.at(j).at(0); //label of the closest neighbor
+                }
             }
         }
-
+        if (labelObjectToClassify == nearestNeighborLabel) {numberCorrectlyClassified++;}
     }
-    return 0;
+    accuracy = numberCorrectlyClassified / (double)dataset.size();
+    //cout << accuracy << endl;
+    return accuracy;
 }
 
 void printCurrSet(vector<int> current_set_of_features){
@@ -169,12 +204,16 @@ void printCurrSet(vector<int> current_set_of_features){
 // }
 
 int main(){ //part 2
-    string fileName = "small-test-dataset.txt";
-    cout << "HIIII" <<endl;
-    vector<int> placeholder;
+    string fileName;
+    cout << "Which dataset would you like to use? 1) small dataset or 2) large dataset" << endl;
+    int set;
+    cin >> set; //1 = small, 2 = large
+    if (set == 1){fileName = "small-test-dataset.txt";}
+    else if (set == 2){fileName = "Large-test-dataset.txt";}
+    vector<int> placeholder = {3,4,5};
     vector<vector<double>> data;
     data = convertFiletoData(fileName);
-    leaveOneOutCrossValidation(data, placeholder, 0);
+    leaveOneOutCrossValidation(data, placeholder, 9);
     
     return 0;
 }

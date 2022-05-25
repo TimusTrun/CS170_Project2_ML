@@ -10,6 +10,7 @@
 #include <string>
 #include <sstream>
 #include <limits.h>
+#include <cmath>
 using namespace std;
 
 double leaveOneOutCrossValidation(vector<vector<double>> data, vector<int>current_set_of_features, int feature_to_add); //k-fold cross validation
